@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 import fastapi
 import uvicorn
 from fastapi.staticfiles import StaticFiles
@@ -5,9 +6,14 @@ from fastapi.staticfiles import StaticFiles
 #imports
 from api import weather_api
 from views import home
+from services import openweather_service
 
+@asynccontextmanager
+async def lifespan(app:fastapi.FastAPI):
+    yield
+    await openweather_service.close_client()
 
-api = fastapi.FastAPI()
+api = fastapi.FastAPI(lifespan=lifespan)
 
 def configure():
     configure_routing()
