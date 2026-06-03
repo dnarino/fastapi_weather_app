@@ -1,5 +1,8 @@
+from typing import Optional
 import os
 import fastapi
+from fastapi import Depends
+from pydantic import BaseModel
 
 from dotenv import load_dotenv
 
@@ -10,6 +13,14 @@ API_KEY = os.getenv("WEATHER_API_KEY")
 
 router =fastapi.APIRouter()
 
-@router.get('/api/weather')
-def weather():
-    return "Here will go the weather page.."
+#pydantic Model
+
+class Location(BaseModel):
+    city:str
+    state:Optional[str]=None
+    country:Optional[str] = 'COL'
+
+@router.get('/api/weather/{city}')
+def weather(location:Location = Depends(),
+            units:Optional[str] ='metric'):
+    return f"{location.city}, {location.state}, {location.country} in {units}"

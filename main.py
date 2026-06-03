@@ -1,6 +1,5 @@
 import fastapi
 import uvicorn
-from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
 #imports
@@ -20,6 +19,10 @@ def configure_routing():
     api.include_router(home.router)
     api.include_router(weather_api.router)
 
+
+
 if __name__== '__main__':
     configure()
     uvicorn.run("main:api", port=8000, host='127.0.0.1', reload=True)
+else:
+    configure()
