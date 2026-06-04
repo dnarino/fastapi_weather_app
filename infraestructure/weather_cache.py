@@ -1,44 +1,43 @@
 import datetime
 from typing import Optional, Tuple
 
+# In-memory database
 __cache = {}
-lifetime_in_hours = 1.0
-
+LIFETIME_IN_HOURS = 1.0
+MAX_CACHE_SIZE = 1000  # Fail-safe: limits maximum memory usage
 
 def get_weather(city: str, state: Optional[str], country: str, units: str) -> Optional[dict]:
     key = __create_key(city, state, country, units)
-    data: dict = __cache.get(key)
+    data = __cache.get(key)
     if not data:
         return None
 
-    last = data['time']
-    dt = datetime.datetime.now() - last
-    if dt / datetime.timedelta(minutes=60) < lifetime_in_hours:
-        return data['value']
+    # Lazy Deletion: Check expiration ONLY when we access the data
+    dt = datetime.datetime.now() - data['time']
+    if dt / datetime.timedelta(minutes=60) >= LIFETIME_IN_HOURS:
+        del __cache[key]  # Clean it up immediately
+        return None
 
-    del __cache[key]
-    return None
+    return data['value']
 
-
-def set_weather(city: str, state: str, country: str, units: str, value: dict):
+def set_weather(city: str, state: Optional[str], country: str, units: str, value: dict):
     key = __create_key(city, state, country, units)
-    data = {'time': datetime.datetime.now(), 'value': value}
-    __cache[key] = data
-    __clean_out_of_date()
+    __cache[key] = {
+        'time': datetime.datetime.now(),
+        'value': value
+    }
 
+    # Bounded Cache: Evict the oldest key if we exceed the limit
+    # Python 3.7+ dictionaries maintain insertion order, making this O(1)
+    if len(__cache) > MAX_CACHE_SIZE:
+        oldest_key = next(iter(__cache))
+        del __cache[oldest_key]
 
-def __create_key(city: str, state: str, country: str, units: str) -> Tuple[str, str, str, str]:
+def __create_key(city: str, state: Optional[str], country: str, units: str) -> Tuple[str, str, str, str]:
     if not city or not country or not units:
-        raise Exception('City, country, and units are required')
+        raise ValueError('City, country, and units are required')  # Fail-fast with specific exception
 
     if not state:
         state = ''
 
     return city.strip().lower(), state.strip().lower(), country.strip().lower(), units.strip().lower()
-
-
-def __clean_out_of_date():
-    for key, data in list(__cache.items()):
-        dt = datetime.datetime.now() - data.get('time')
-        if dt / datetime.timedelta(minutes=60) > lifetime_in_hours:
-            del __cache[key]

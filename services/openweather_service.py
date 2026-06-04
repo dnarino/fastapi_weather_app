@@ -1,3 +1,4 @@
+from infraestructure import weather_cache
 import httpx
 import os
 from dotenv import load_dotenv
@@ -8,6 +9,9 @@ load_dotenv()
 client = httpx.AsyncClient()
 
 async def get_report_async(city: str, state: Optional[str], country: str, units: str) -> dict:
+    
+    if forecast:=weather_cache.get_weather(city,state,country,units):
+        return forecast
     if state:
         q = f"{city},{state},{country}"
     else:
@@ -25,6 +29,7 @@ async def get_report_async(city: str, state: Optional[str], country: str, units:
     
     data =response.json()
     forecast = data['main']
+    weather_cache.set_weather(city,state,country,units,forecast)
     return forecast
 
 async def close_client():
