@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from api import weather_api
 from views import home
 from services import openweather_service
+from infraestructure import error_handlers
 
 @asynccontextmanager
 async def lifespan(app:fastapi.FastAPI):
@@ -17,6 +18,7 @@ api = fastapi.FastAPI(lifespan=lifespan)
 
 def configure():
     configure_routing()
+    error_handlers.register_error_handlers(api)
 
 # Register routers
 def configure_routing():
