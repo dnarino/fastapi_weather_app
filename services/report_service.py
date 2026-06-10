@@ -4,20 +4,7 @@ from models.reports import Report
 from models.location import Location
 from typing import List
 
-__reports: List[Report] = [
-    Report(
-        id=str(uuid.uuid4()),
-        location=Location(city="Bogotá", state="Cundinamarca", country="COL"),
-        description="Heavy rain and thunderstorms in the afternoon.",
-        created_time=datetime.now()
-    ),
-    Report(
-        id=str(uuid.uuid4()),
-        location=Location(city="Medellín", state="Antioquia", country="COL"),
-        description="Warm and sunny morning with light breeze.",
-        created_time=datetime.now()
-    )
-]
+__reports: List[Report] = []
 
 async def get_reports() -> List[Report]:
     return list(__reports)
